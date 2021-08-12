@@ -1,0 +1,28 @@
+version: "2.0"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say 'I am a bot' anytime the user challenges
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+- rule: Rule for Dataset Name
+  steps: 
+  - intent: about_data_dataset_name
+  - action: action_about_data_dataset_name
+
+- rule: Rule for Granularity dataset
+  steps:
+  - intent: about_data_granularity_level
+  - action: action_about_data_granularity_level
+
+- rule: Rule for Sales of fertiliser data
+  steps:
+  - intent: about_data_source_data
+  - action: action_about_data_source_data
