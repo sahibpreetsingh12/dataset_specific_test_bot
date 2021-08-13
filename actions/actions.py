@@ -53,6 +53,7 @@ class ActionDatasetName(Action):
         'agri data' : 'agcensus_crop',
         'agricuture data':'agcensus_crop',
         'agriculture':'agcensus_crop',
+        'agcensus':'agcensus_crop',
         'rainfall':'rainfall',
         'rain data':'rainfall',
         'rainfall data':'rainfall',
@@ -63,7 +64,16 @@ class ActionDatasetName(Action):
         'fertiliser sales':'fertiliser_sales',
         'fertilizer sales data':'fertiliser_sales',
         'fertilizers sales data':'fertiliser_sales',
-         'sales regarding fertlisers':'fertiliser_sales',}
+         'sales regarding fertlisers':'fertiliser_sales',
+         'rbi_deposit':'rbi_deposit',
+         'deposits of rbi':'rbi_deposit',
+         'rbi-deposit':'rbi_deposit',
+         'deposits by rbi':'rbi_deposit',
+         'investments of rbi':'rbi_deposit',
+         'investments by rbi':'rbi_deposit',
+         'mnrega employment':'nrga_emp',
+         'credit by bank':'rbi_credit',
+         }
 
         global transformed_dataset_name
     
@@ -99,7 +109,8 @@ class ActionDatasetName(Action):
                 for i in range(len(temp_data)):
                     data = temp_data[i]
  
-                    dict_of_mapped_data_with_id[data['dataset_name']] = data['id']
+                    print(f"{data['dataset_name']} ---> {data['dataset_id']}")
+                    dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
   
 
                 # if transformed_dataset_name is present in our data we got from json file
@@ -110,7 +121,7 @@ class ActionDatasetName(Action):
 
                     for i in range(len(temp_data)):
                             data = temp_data[i]
-                            if data['id']==extracted_id:
+                            if data['dataset_id']==extracted_id:
                                 p = json.dumps(data)
                                 p = json.loads(p)
                                 
@@ -178,7 +189,7 @@ class ActionGranularityLevel(Action):
                     temp_data = json.loads(temp_data)
                     for i in range(len(temp_data)):
                         data = temp_data[i]
-                        dict_of_mapped_data_with_id[data['dataset_name']] = data['id']
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
 
                     # if extracted dataset name is present in our data we got from json file
                     if dataset_name_granular in dict_of_mapped_data_with_id.keys():
@@ -188,7 +199,7 @@ class ActionGranularityLevel(Action):
 
                         for i in range(len(temp_data)):
                                 data = temp_data[i]
-                                if data['id']==extracted_id:
+                                if data['dataset_id']==extracted_id:
                                     p = json.dumps(data)
                                     p = json.loads(p)
                                     # print(p,'\n')
@@ -253,8 +264,8 @@ class ActionSourcedata(Action):
                     temp_data = json.loads(temp_data)
                     for i in range(len(temp_data)):
                         data = temp_data[i]
-                        # print(f"{data['dataset_name']} ---- > {data['id']} " )
-                        dict_of_mapped_data_with_id[data['dataset_name']] = data['id']
+                        # print(f"{data['dataset_name']} ---- > {data['dataset_id']} " )
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
 
                     # if extracted dataset name is present in our data we got from json file
                     if dataset_name_ in dict_of_mapped_data_with_id.keys():
@@ -264,7 +275,7 @@ class ActionSourcedata(Action):
 
                         for i in range(len(temp_data)):
                                 data = temp_data[i]
-                                if data['id']==extracted_id:
+                                if data['dataset_id']==extracted_id:
                                     p = json.dumps(data)
                                     p = json.loads(p)
                                     # print(p,'\n')

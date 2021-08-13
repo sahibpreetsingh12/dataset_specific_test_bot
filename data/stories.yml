@@ -40,3 +40,17 @@ stories:
   - action: action_about_data_dataset_name
   - intent: affirm
   - action: utter_happy
+
+
+- story: happy-1-path
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: about_data_dataset_name
+    entities:
+      - dataset_name: "rbi_deposit"
+  - action: action_about_data_dataset_name
+  - intent: about_data_granularity_level
+  - action: action_about_data_granularity_level
+  - intent: affirm
+  - action: utter_happy

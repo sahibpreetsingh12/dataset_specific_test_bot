@@ -108,6 +108,16 @@ nlu:
     - wanna know [source]{"entity":"source_name"} of data regarding [sales of fertlisers]{"entity": "dataset_name"}
     - can you help me with [fertiliser sales]{"entity": "dataset_name"} data
     - soem queries regarding [fertilizer sales data]{"entity": "dataset_name"}
+    - wanna know about [rbi_deposit]{"entity": "dataset_name"} data
+    - anything related to [deposits of rbi]{"entity": "dataset_name"}
+    - some queries around [rbi-deposit]{"entity": "dataset_name"} data
+    - wanna know [source]{"entity":"source_name"} of data regarding [deposits by rbi]{"entity":"dataset_name"}
+    - I have some doubts the data regarding [investments of rbi]{"entity": "dataset_name"}
+    - I want to know [mnrega employment]{"entity": "dataset_name"} data
+    - I would to know more about [credit by bank]{"entity": "dataset_name"} data
+    - can you tell me about [agriculture wages]{"entity": "dataset_name"} data
+    - can you tell me about [agriculture wage]{"entity": "dataset_name"} data
+    - [agricultural wage] data? I have queries around it
 
     
 
