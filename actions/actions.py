@@ -73,6 +73,9 @@ class ActionDatasetName(Action):
          'investments by rbi':'rbi_deposit',
          'mnrega employment':'nrga_emp',
          'credit by bank':'rbi_credit',
+         'Soil':'soil'
+         ,'soil':'soil',
+         'pmfby':'pmfby'
          }
 
         global transformed_dataset_name
@@ -109,7 +112,7 @@ class ActionDatasetName(Action):
                 for i in range(len(temp_data)):
                     data = temp_data[i]
  
-                    print(f"{data['dataset_name']} ---> {data['dataset_id']}")
+                    # print(f"{data['dataset_name']} ---> {data['dataset_id']}")
                     dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
   
 
@@ -155,7 +158,6 @@ class ActionDatasetName(Action):
             dispatcher.utter_message(text = """Can You Please rephrase your question about which dataset
              you want ask """)
         
-
 
 class ActionGranularityLevel(Action):
 
@@ -232,6 +234,7 @@ class ActionGranularityLevel(Action):
                 what's your query reagrding it """)
 
 
+
 class ActionSourcedata(Action):
 
     def name(self) -> Text:
@@ -304,5 +307,232 @@ class ActionSourcedata(Action):
                             dispatcher.utter_message(text = """Ex :Like if you want to know Source of a Dataset
                                                                         say it like :- What is the Source of Rainfall Data""")
 
+            else:
+                dispatcher.utter_message(text = "Can you tell which dataset it is")
+
+
+
+class ActionMethodology(Action):
+
+    def name(self) -> Text:
+        return "action_about_data_methodology"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+            # intent of user message 
+            print("\n",tracker.get_intent_of_latest_message())
+
+            print("\n","Now slots value in source is ",tracker.slots['dataset_name'])
+
+            ls_entity =tracker.latest_message['entities'] # to get entities from user message
+            if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
+                # name of datset from slot we had
+                dataset_name_ = tracker.slots['dataset_name']
+                extracted_ls_entity = []
+                for i in range(len(ls_entity)):
+                    extracted_ls_entity.append(ls_entity[i]['entity'])
+                # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
+                print(f"Entites we extracted in source {extracted_ls_entity}")
+
+
+                dict_of_mapped_data_with_id = {}
+                with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
+                    data = json.loads(url.read().decode())
+                    temp_data  = json.dumps(data, indent=4, sort_keys=True)
+                    temp_data = json.loads(temp_data)
+                    for i in range(len(temp_data)):
+                        data = temp_data[i]
+                        # print(f"{data['dataset_name']} ---- > {data['dataset_id']} " )
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
+
+                    # if extracted dataset name is present in our data we got from json file
+                    if dataset_name_ in dict_of_mapped_data_with_id.keys():
+                        
+                        # extract id for that dataset name
+                        extracted_id = dict_of_mapped_data_with_id[dataset_name_]
+
+                        for i in range(len(temp_data)):
+                                data = temp_data[i]
+                                if data['dataset_id']==extracted_id:
+                                    p = json.dumps(data)
+                                    p = json.loads(p)
+                                    # print(p,'\n')
+                        
+
+                        if len(extracted_ls_entity) >=1:
+                            # iterating through all entites other than dataset_name
+                            for entity_iter in extracted_ls_entity:
+                                print("yes i am in methodology")
+                                # check if entity present in extracted_ls_entity is also present in p ( data in db)
+                                # spellcheck the entity
+
+                                
+                                if entity_iter in p.keys():
+                                    # if entity is present in p then print the value of that entity
+                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                
+                                else:
+                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know Methodology of a Dataset
+                                                                        say it like :- What was the methodolgy adopted to make Rainfall Data""")
+                        
+                        else:
+                            dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
+                            dispatcher.utter_message(text = """Ex :Like if you want to know Methodology of a Dataset
+                                                                        say it like :- What was the methodolgy adopted to make Rainfall Data""")
+
+            else:
+                dispatcher.utter_message(text = "Can you tell which dataset it is")
+
+class ActionFrequency(Action):
+
+    def name(self) -> Text:
+        return "action_about_data_frequency"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+            # intent of user message 
+            print("\n",tracker.get_intent_of_latest_message())
+
+            print("\n","Now slots value in frequency is ",tracker.slots['dataset_name'])
+
+            ls_entity =tracker.latest_message['entities'] # to get entities from user message
+            if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
+                # name of datset from slot we had
+                dataset_name_ = tracker.slots['dataset_name']
+                extracted_ls_entity = []
+                for i in range(len(ls_entity)):
+                    extracted_ls_entity.append(ls_entity[i]['entity'])
+                # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
+                print(f"Entites we extracted in frequency {extracted_ls_entity}")
+
+
+                dict_of_mapped_data_with_id = {}
+                with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
+                    data = json.loads(url.read().decode())
+                    temp_data  = json.dumps(data, indent=4, sort_keys=True)
+                    temp_data = json.loads(temp_data)
+                    for i in range(len(temp_data)):
+                        data = temp_data[i]
+                        # print(f"{data['dataset_name']} ---- > {data['dataset_id']} " )
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
+
+                    # if extracted dataset name is present in our data we got from json file
+                    if dataset_name_ in dict_of_mapped_data_with_id.keys():
+                        
+                        # extract id for that dataset name
+                        extracted_id = dict_of_mapped_data_with_id[dataset_name_]
+
+                        for i in range(len(temp_data)):
+                                data = temp_data[i]
+                                if data['dataset_id']==extracted_id:
+                                    p = json.dumps(data)
+                                    p = json.loads(p)
+                                    # print(p,'\n')
+                        
+
+                        if len(extracted_ls_entity) >=1:
+                            # iterating through all entites other than dataset_name
+                            for entity_iter in extracted_ls_entity:
+                                print("yes i am in frequency")
+                                # check if entity present in extracted_ls_entity is also present in p ( data in db)
+                                # spellcheck the entity
+
+                                
+                                if entity_iter in p.keys():
+
+                                    # if entity is present in p then print the value of that entity
+                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                
+                                else:
+                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know Frequqncy of about Dataset updation
+                                                                        say it like :- How often Rainfall Data is updated""")
+                        
+                        else:
+                            dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
+                            dispatcher.utter_message(text = """Ex :Like if you want to know Frequqncy of about Dataset updation
+                                                                        say it like :- How often Rainfall Data is updated""")
+            else:
+                dispatcher.utter_message(text = "Can you tell which dataset it is")
+
+
+class ActionLastDateUpdated(Action):
+
+    def name(self) -> Text:
+        return "action_about_data_data_last_updated"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+            # intent of user message 
+            # print("\n",tracker.get_intent_of_latest_message())
+
+            print("\n","Now slots value in Last date Updated is ",tracker.slots['dataset_name'])
+
+            ls_entity =tracker.latest_message['entities'] # to get entities from user message
+            if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
+                # name of datset from slot we had
+                dataset_name_ = tracker.slots['dataset_name']
+                extracted_ls_entity = []
+                for i in range(len(ls_entity)):
+                    extracted_ls_entity.append(ls_entity[i]['entity'])
+                # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
+                print(f"Entites we extracted in frequency {extracted_ls_entity}")
+
+
+                dict_of_mapped_data_with_id = {}
+                with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
+                    data = json.loads(url.read().decode())
+                    temp_data  = json.dumps(data, indent=4, sort_keys=True)
+                    temp_data = json.loads(temp_data)
+                    for i in range(len(temp_data)):
+                        data = temp_data[i]
+                        # print(f"{data['dataset_name']} ---- > {data['dataset_id']} " )
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
+
+                    # if extracted dataset name is present in our data we got from json file
+                    if dataset_name_ in dict_of_mapped_data_with_id.keys():
+                        
+                        # extract id for that dataset name
+                        extracted_id = dict_of_mapped_data_with_id[dataset_name_]
+
+                        for i in range(len(temp_data)):
+                                data = temp_data[i]
+                                if data['dataset_id']==extracted_id:
+                                    p = json.dumps(data)
+                                    p = json.loads(p)
+                        
+
+                        if len(extracted_ls_entity) >=1:
+                            # iterating through all entites other than dataset_name
+                            for entity_iter in extracted_ls_entity:
+                                print("yes i am in Last Date Updated")
+                                # check if entity present in extracted_ls_entity is also present in p ( data in db)
+                                # spellcheck the entity
+
+                                
+                                if entity_iter in p.keys():
+
+                                    # if entity is present in p then print the value of that entity
+                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                
+                                else:
+                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know Last Date updated for a Dataset 
+                                                                        say it like :- When was this last date updated""")
+                        
+                        else:
+                            dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
+                            dispatcher.utter_message(text = """Ex :Like if you want to know Last Date updated for a Dataset 
+                                                                        say it like :- When was this last date updated""")
             else:
                 dispatcher.utter_message(text = "Can you tell which dataset it is")
