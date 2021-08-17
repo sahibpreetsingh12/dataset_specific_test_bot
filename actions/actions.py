@@ -13,7 +13,37 @@ from rasa_sdk.events import SlotSet
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 
-
+master_dic_dataset_name = {
+        'agricultural data' : 'agcensus_crop',
+        'agricluture' : 'agcensus_crop', 
+        'agri data' : 'agcensus_crop',
+        'agricuture data':'agcensus_crop',
+        'agriculture':'agcensus_crop',
+        'agriculture census': 'agcensus_crop',
+        'agcensus':'agcensus_crop',
+        'rainfall':'rainfall',
+        'rain data':'rainfall',
+        'rainfall data':'rainfall',
+        'agricultural census':'agcensus_crop',
+        'rain figures':'rainfall',
+        'sales of fertiliser':'fertiliser_sales',
+        'sales of fertilisers':'fertiliser_sales',
+        'fertiliser sales':'fertiliser_sales',
+        'fertilizer sales data':'fertiliser_sales',
+        'fertilizers sales data':'fertiliser_sales',
+         'sales regarding fertlisers':'fertiliser_sales',
+         'rbi_deposit':'rbi_deposit',
+         'deposits of rbi':'rbi_deposit',
+         'rbi-deposit':'rbi_deposit',
+         'deposits by rbi':'rbi_deposit',
+         'investments of rbi':'rbi_deposit',
+         'investments by rbi':'rbi_deposit',
+         'mnrega employment':'nrga_emp',
+         'credit by bank':'rbi_credit',
+         'Soil':'soil'
+         ,'soil':'soil',
+         'pmfby':'pmfby'
+         }
 class ActionDatasetName(Action):
 
     def name(self) -> Text:
@@ -47,40 +77,12 @@ class ActionDatasetName(Action):
                 break
     
         # dictionary  conating all possible name that can be given to a dataset name
-        master_dic_dataset_name = {
-        'agricultural data' : 'agcensus_crop',
-        'agricluture' : 'agcensus_crop', 
-        'agri data' : 'agcensus_crop',
-        'agricuture data':'agcensus_crop',
-        'agriculture':'agcensus_crop',
-        'agcensus':'agcensus_crop',
-        'rainfall':'rainfall',
-        'rain data':'rainfall',
-        'rainfall data':'rainfall',
-        'agricultural census':'agcensus_crop',
-        'rain figures':'rainfall',
-        'sales of fertiliser':'fertiliser_sales',
-        'sales of fertilisers':'fertiliser_sales',
-        'fertiliser sales':'fertiliser_sales',
-        'fertilizer sales data':'fertiliser_sales',
-        'fertilizers sales data':'fertiliser_sales',
-         'sales regarding fertlisers':'fertiliser_sales',
-         'rbi_deposit':'rbi_deposit',
-         'deposits of rbi':'rbi_deposit',
-         'rbi-deposit':'rbi_deposit',
-         'deposits by rbi':'rbi_deposit',
-         'investments of rbi':'rbi_deposit',
-         'investments by rbi':'rbi_deposit',
-         'mnrega employment':'nrga_emp',
-         'credit by bank':'rbi_credit',
-         'Soil':'soil'
-         ,'soil':'soil',
-         'pmfby':'pmfby'
-         }
+    
 
         global transformed_dataset_name
     
         transformed_dataset_name =0
+        global master_dic_dataset_name
         if extracted_dataset_name in master_dic_dataset_name.keys():
             
 
@@ -176,7 +178,15 @@ class ActionGranularityLevel(Action):
             ls_entity =tracker.latest_message['entities'] # to get entities from user message
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
-                dataset_name_granular = tracker.slots['dataset_name']
+                dataset_name_ = tracker.slots['dataset_name']
+
+                # calling global dictionary
+                global master_dic_dataset_name
+
+                # if dataset name that is extracted from user message is present in our data we got from json file
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
                 extracted_ls_entity = []
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
@@ -194,10 +204,10 @@ class ActionGranularityLevel(Action):
                         dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
 
                     # if extracted dataset name is present in our data we got from json file
-                    if dataset_name_granular in dict_of_mapped_data_with_id.keys():
+                    if dataset_name_ in dict_of_mapped_data_with_id.keys():
                         
                         # extract id for that dataset name
-                        extracted_id = dict_of_mapped_data_with_id[dataset_name_granular]
+                        extracted_id = dict_of_mapped_data_with_id[dataset_name_]
 
                         for i in range(len(temp_data)):
                                 data = temp_data[i]
@@ -253,6 +263,15 @@ class ActionSourcedata(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
+
+                # calling global dictionary
+                global master_dic_dataset_name
+
+                # if dataset name that is extracted from user message is present in our data we got from json file
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
+
                 extracted_ls_entity = []
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
@@ -324,17 +343,23 @@ class ActionMethodology(Action):
             # intent of user message 
             print("\n",tracker.get_intent_of_latest_message())
 
-            print("\n","Now slots value in source is ",tracker.slots['dataset_name'])
+            print("\n","Now slots value in Methodology is ",tracker.slots['dataset_name'])
 
             ls_entity =tracker.latest_message['entities'] # to get entities from user message
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
+  
+                global master_dic_dataset_name
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
+
                 extracted_ls_entity = []
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
-                print(f"Entites we extracted in source {extracted_ls_entity}")
+                print(f"Entites we extracted in Methodology {extracted_ls_entity}")
 
 
                 dict_of_mapped_data_with_id = {}
@@ -405,6 +430,15 @@ class ActionFrequency(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
+
+                 # calling global dictionary
+                global master_dic_dataset_name
+
+                # if dataset name that is extracted from user message is present in our data we got from json file
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
+
                 extracted_ls_entity = []
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
@@ -481,6 +515,16 @@ class ActionLastDateUpdated(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
+
+                # calling global dictionary
+                global master_dic_dataset_name
+
+                # if dataset name that is extracted from user message is present in our data we got from json file
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
+
+
                 extracted_ls_entity = []
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
