@@ -130,7 +130,7 @@ nlu:
 
     
 
-- intent: about_data_granularity_level
+- intent: about_data_granularity
   examples: |
     - what is it's [granularity]{"entity":"granularity"} level
     - how much [graularity]{"entity":"granularity"} does it has
@@ -140,7 +140,7 @@ nlu:
     - on what [level data]{"entity":"granularity"} is divided here?
     - how much [granular]{"entity":"granularity"} the data is which i am using ?
 
-- intent: about_data_source_data
+- intent: about_data_source_name
   examples: |
     - whats the [source]{"entity":"source_name"} of data
     - from [where]{"entity":"source_name"} is the data derived
@@ -172,7 +172,7 @@ nlu:
     - [frequency]{"entity":"frequency"} of it ?
     - [frequency]{"entity":"frequency"}?
 
-- intent: about_data_data_last_updated
+- intent: about_data_last_updated_date
   examples: |
     - when was the [last time]{"entity":"last_updated_date"} data was updated.
     - this [rainfall]{"entity": "dataset_name"} data when was it [last date]{"entity":"last_updated_date"} updated
@@ -182,6 +182,32 @@ nlu:
     - i have some queries how [recent]{"entity":"last_updated_date"} are these figures
     - i have to give this date when was the data that i am using it was [updated lastly]{"entity":"last_updated_date"}
 
+- intent: about_data_source_link
+  examples: |
+    - can you provide me with [link to source]{"entity":"source_link"}
+    - what's the [source link]{"entity":"source_link"}
+    - can you give me the [url]{"entity":"source_link"} from where it was extracted
+    - from where all the data is coming can you give me that [link]{"entity":"source_link"}
+    - the [url]{"entity":"source_link"} for the source
+    - i have to give credit can you send me the [source url]{"entity":"source_link"}
+    - [source url]{"entity":"source_link"} of the dataset ?
+    - [link to source]{"entity":"source_link"} for [soil]{"entity":"dataset_name"}?
+    - can you provide me [origin url]{"entity":"source_link"}
+    - can i get [source url]{"entity":"source_link"} for [rbi deposit]{"entity":"dataset_name"}
+    - i have query can we get [link to the source]{"entity":"source_link"}
+    - can i get [url to the source]{"entity":"source_link"} for [agriculture census]{"entity":"dataset_name"} data
+  
+
+- intent: about_data_data_extraction_page
+  examples: |
+    - can you provide me link to [data extraction page]{"entity":"data_extraction_page"}
+    - from where can i get url to [data extraction page]{"entity":"data_extraction_page"}
+    - any link to page from [data was extracted]{"entity":"data_extraction_page"}
+    - i need url of [data extraction page]{"entity":"data_extraction_page"}
+    - can i get url for [data extraction page]{"entity":"data_extraction_page"} of [soil]{"entity":"dataset_name"} data
+    - link to page from where [data was fetched]{"entity":"data_extraction_page"} for [agriculture census]{"entity":"dataset_name"} dataset
+    - link to page from where [data was taken]{"entity":"data_extraction_page"} in case of [rainfall]{"entity":"dataset_name"} data
+    - from where all the [data was taken]{"entity":"data_extraction_page"} for this dataset
 - lookup: dataset_name
   examples: |
     - agcensus_crop

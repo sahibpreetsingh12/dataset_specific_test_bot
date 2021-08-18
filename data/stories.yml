@@ -50,7 +50,7 @@ stories:
     entities:
       - dataset_name: "rbi_deposit"
   - action: action_about_data_dataset_name
-  - intent: about_data_granularity_level
-  - action: action_about_data_granularity_level
+  - intent: about_data_granularity
+  - action: action_about_data_granularity
   - intent: affirm
   - action: utter_happy
