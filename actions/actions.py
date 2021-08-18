@@ -680,7 +680,7 @@ class ActionDataExtractionPage(Action):
             # intent of user message 
             # print("\n",tracker.get_intent_of_latest_message())
 
-            print("\n","Now slots value in Source Link is ",tracker.slots['dataset_name'])
+            print("\n","Now slots value in Extraction page is ",tracker.slots['dataset_name'])
 
             ls_entity =tracker.latest_message['entities'] # to get entities from user message
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
@@ -700,7 +700,7 @@ class ActionDataExtractionPage(Action):
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
-                print(f"Entites we extracted in source link {extracted_ls_entity}")
+                print(f"Entites we extracted in Extraction page {extracted_ls_entity}")
 
 
                 dict_of_mapped_data_with_id = {}
@@ -729,7 +729,7 @@ class ActionDataExtractionPage(Action):
                         if len(extracted_ls_entity) >=1:
                             # iterating through all entites other than dataset_name
                             for entity_iter in extracted_ls_entity:
-                                print("yes i am in Source Link")
+                                print("yes i am in extarct data")
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
 
@@ -749,5 +749,90 @@ class ActionDataExtractionPage(Action):
                             dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
                             dispatcher.utter_message(text = """Ex :Like if you want to know Source Link for a Dataset 
                                                                         say it like :- What was the source for the dataset""")
+            else:
+                dispatcher.utter_message(text = "Can you tell which dataset it is")
+
+
+class ActionAboutData(Action):
+
+    def name(self) -> Text:
+        return "action_about_data_about_data"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+            # intent of user message 
+            # print("\n",tracker.get_intent_of_latest_message())
+
+            print("\n","Now slots value in about data is ",tracker.slots['dataset_name'])
+
+            ls_entity =tracker.latest_message['entities'] # to get entities from user message
+            if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
+                # name of datset from slot we had
+                dataset_name_ = tracker.slots['dataset_name']
+
+                # calling global dictionary
+                global master_dic_dataset_name
+
+                # if dataset name that is extracted from user message is present in our data we got from json file
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
+
+
+                extracted_ls_entity = []
+                for i in range(len(ls_entity)):
+                    extracted_ls_entity.append(ls_entity[i]['entity'])
+                # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
+                print(f"Entites we extracted in about data {extracted_ls_entity}")
+
+
+                dict_of_mapped_data_with_id = {}
+                with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
+                    data = json.loads(url.read().decode())
+                    temp_data  = json.dumps(data, indent=4, sort_keys=True)
+                    temp_data = json.loads(temp_data)
+                    for i in range(len(temp_data)):
+                        data = temp_data[i]
+                        # print(f"{data['dataset_name']} ---- > {data['dataset_id']} " )
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
+
+                    # if extracted dataset name is present in our data we got from json file
+                    if dataset_name_ in dict_of_mapped_data_with_id.keys():
+                        
+                        # extract id for that dataset name
+                        extracted_id = dict_of_mapped_data_with_id[dataset_name_]
+
+                        for i in range(len(temp_data)):
+                                data = temp_data[i]
+                                if data['dataset_id']==extracted_id:
+                                    p = json.dumps(data)
+                                    p = json.loads(p)
+                        
+
+                        if len(extracted_ls_entity) >=1:
+                            # iterating through all entites other than dataset_name
+                            for entity_iter in extracted_ls_entity:
+                                print("yes i am in about data Link")
+                                # check if entity present in extracted_ls_entity is also present in p ( data in db)
+                                # spellcheck the entity
+
+                                
+                                if entity_iter in p.keys():
+
+                                    # if entity is present in p then print the value of that entity
+                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                
+                                else:
+                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know about a Dataset 
+                                                                        say it like :- can you tell me about soil data""")
+                        
+                        else:
+                            dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
+                            dispatcher.utter_message(text = """Ex :Like if you want to know about a Dataset 
+                                                                        say it like :- can you tell me about soil data""")
             else:
                 dispatcher.utter_message(text = "Can you tell which dataset it is")

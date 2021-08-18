@@ -51,3 +51,8 @@ rules:
   steps:
     - intent: about_data_data_extraction_page
     - action: action_about_data_data_extraction_page
+
+- rule: Rule for About data
+  steps:
+    - intent: about_data_about_data
+    - action: action_about_data_about_data

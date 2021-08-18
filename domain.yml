@@ -32,6 +32,9 @@ intents:
 - about_data_data_extraction_page:
     use_entities: true
 
+- about_data_about_data:
+    use_entities: true
+
 
 entities:
 - dataset_name
@@ -42,6 +45,7 @@ entities:
 - last_updated_date
 - source_link
 - data_extraction_page
+- about_data
 
 
 slots:
@@ -80,6 +84,7 @@ actions:
 - action_about_data_last_updated_date
 - action_about_data_source_link
 - action_about_data_data_extraction_page
+- action_about_data_about_data
 
 forms: {}
 e2e_actions: []

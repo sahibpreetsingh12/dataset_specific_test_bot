@@ -208,19 +208,16 @@ nlu:
     - link to page from where [data was fetched]{"entity":"data_extraction_page"} for [agriculture census]{"entity":"dataset_name"} dataset
     - link to page from where [data was taken]{"entity":"data_extraction_page"} in case of [rainfall]{"entity":"dataset_name"} data
     - from where all the [data was taken]{"entity":"data_extraction_page"} for this dataset
-- lookup: dataset_name
-  examples: |
-    - agcensus_crop
-    - rainfall
-    - fertiliser_sales
-    - rbi_deposit
-    - pmfby
 
-- synonym: methodology
+
+- intent: about_data_about_data
   examples: |
-    - modus operandi
-    - procedure
-    - course
-    - style
-    - technique
-    - manner
+    - i want to know [about this dataset]{"entity":"about_data"}
+    - wanna get [about data]{"entity":"about_data"} info of [soil]{"entity":"dataset_name"} data
+    - some info regarding [about data]{"entity":"about_data"} for this dataset
+    - can you give me information on [about data]{"entity":"about_data"} for [agriculture]{"entity":"dataset_name"} data
+    - [about data]{"entity":"about_data"} can i get ?
+    - can you help me with [rainfall]{"entity":"dataset_name"} data its [about data]{"entity":"about_data"} section
+    - pls elaborate [about]{"entity":"about_data"} data section of [rbi deposits]{"entity":"dataset_name"} data
+    - i want to know [about]{"entity":"about_data"} [agricultual census]{"entity":"dataset_name"} data
+    - i wanna give credits can i know [about]{"entity":"about_data"} [soil]{"entity":"dataset_name"} data
