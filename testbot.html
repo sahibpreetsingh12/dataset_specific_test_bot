@@ -1,0 +1,38 @@
+<html> 
+  <head>
+    <base target="_blank"> 
+    <title>INDIAN BOT</title></head>
+  <body>
+    IDP BOT TO HELP YOU REGARDING IDP
+      <script >!(function () {
+  let e = document.createElement("script"),
+    t = document.head || document.getElementsByTagName("head")[0];
+  (e.src =
+    "https://cdn.jsdelivr.net/npm/rasa-webchat@1.0.1/lib/index.js"
+    ),
+    // Replace 1.x.x with the version that you want
+    (e.async = !0),
+    (e.onload = () => {
+      window.WebChat.default(
+        {
+          initPayload : '/bot_challenge',
+          customData: { language: "en" },
+          socketUrl : "http://localhost:5005",
+          title :'IDP BOT',
+          subtitle : "Say hi to idp bot ",
+          docViewer : true,
+          socketPath : "/socket.io/",
+          params: {"storage":"session"}
+          
+          // add other props here
+        },
+        null
+      );
+    }),
+    t.insertBefore(e, t.firstChild);
+})
+();
+
+    </script>
+  </body>
+</html>

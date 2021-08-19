@@ -49,7 +49,7 @@ stories:
   - intent: about_data_dataset_name
     entities:
       - dataset_name: "rbi_deposit"
-  - action: about_data_dataset_name
+  - action: action_about_data_dataset_name
   - intent: about_data_granularity
   - action: action_about_data_granularity
   - intent: affirm

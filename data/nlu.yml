@@ -221,3 +221,28 @@ nlu:
     - pls elaborate [about]{"entity":"about_data"} data section of [rbi deposits]{"entity":"dataset_name"} data
     - i want to know [about]{"entity":"about_data"} [agricultual census]{"entity":"dataset_name"} data
     - i wanna give credits can i know [about]{"entity":"about_data"} [soil]{"entity":"dataset_name"} data
+
+- intent: feedback-form
+  examples: |
+    - can you provide me with the feedback form?
+    - how can i get the feedback form
+    - is there any feedback form?
+    - do idp have any feedback form?
+    - please  tell me if there is any feedback form
+    - how can i give feedback 
+    - i wanna give some feddback
+    - feedback any way?
+    - any way to give feedback
+    - i wnat to give feedback where should i go
+    - i want to give feedback how am i supposed to do that?
+    - it was really nice working here i wanna suggest some improvements
+    - any way i can give suggestions
+    - i can provide some improvements
+    - any way i can give improvemnets feedback
+    - how can one send feeback to idp?
+    - What is the best way for me to provide feedback?
+    - How do I send my feedback?
+    - best way for submitting a feedback?
+    - what is the best way to give the feedback?
+    - How can I send my feedbacks?
+    - how can i give my suggestions

@@ -12,6 +12,11 @@ rules:
   - intent: bot_challenge
   - action: utter_iamabot
 
+- rule: for feedback
+  steps:
+  - intent: feedback-form
+  - action: utter_feedback-form
+
 - rule: Rule for Dataset Name
   steps: 
   - intent: about_data_dataset_name
