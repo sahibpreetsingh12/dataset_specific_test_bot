@@ -78,19 +78,14 @@ responses:
   utter_iamabot:
   - text: "I am a bot, powered by IDP."
 
-  utter_feedback-form:
-  # - text: "Feedback" 
-  - custom:
-      blocks:
-      - title: "[feedback](https://www.google.com)"
-      - type: web_url
-        url: 'https://www.google.com'
+  # utter_feedback-form:
+  # # - text: "Feedback" 
+  # - custom:
+  #     blocks:
+  #     - title: "[feedback](https://www.google.com)"
+  #     - type: web_url
+  #       url: 'https://www.google.com'
 
-      # - title: "Current tab"
-      #   type: web_url
-      #   url: 'https://www.google.com'
-      #   linkTarget: _blank
-      #   payload: "https://www.google.com"
 
 
 actions:
@@ -103,6 +98,7 @@ actions:
 - action_about_data_source_link
 - action_about_data_data_extraction_page
 - action_about_data_about_data
+- action_feedback-form
 
 forms: {}
 e2e_actions: []

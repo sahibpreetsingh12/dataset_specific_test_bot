@@ -15,7 +15,7 @@ rules:
 - rule: for feedback
   steps:
   - intent: feedback-form
-  - action: utter_feedback-form
+  - action: action_feedback-form
 
 - rule: Rule for Dataset Name
   steps: 
