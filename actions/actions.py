@@ -11,20 +11,41 @@ from typing import Any, Text, Dict, List
 import urllib.request, json
 from rasa_sdk.events import SlotSet
 from rasa_sdk import Action, Tracker
-from spellcheck import correction , master_dic_dataset_name
 from rasa_sdk.executor import CollectingDispatcher
+from gensim.models import KeyedVectors
+from spellcheck import correction , master_dic_dataset_name
+import numpy as np
+from gensim import models
+from sklearn.metrics.pairwise import cosine_similarity
+import sys
 
-
+dic_of_similarity = {}
 class ActionDatasetName(Action):
 
     def name(self) -> Text:
         return "action_about_data_dataset_name"
 
+    def remove_punctuation_mark_from_user_entity(self, user_entity):
+        # define punctuation
+        punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+        my_str = str(user_entity)
+        # remove punctuation from the string
+        no_punct = ""
+        for ele in my_str:
+            if ele in punctuations:
+                user_entity = user_entity.replace(ele, " ")
+
+        # display the unpunctuated string
+        # print(user_entity)
+        return user_entity
+
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # print(tracker.latest_message['text']) # to get user typed message 
+
+        # word_vectors = KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary=True)
+        # print(tracker.latest_message['text']) # to get user typed message
 
         ls_entity =tracker.latest_message['entities'] # to get entities from user message
 
@@ -46,7 +67,7 @@ class ActionDatasetName(Action):
                 extracted_dataset_name = ls_entity[i]['value']
                 print(extracted_dataset_name)
                 break
-    
+
         # dictionary  conating all possible name that can be given to a dataset name
     
 
@@ -55,20 +76,70 @@ class ActionDatasetName(Action):
         transformed_dataset_name =0
         global master_dic_dataset_name
 
-        if type(extracted_dataset_name) == str:
-            # converting name extracted to lower case
+        # converting name extracted to lower case
+        if type(extracted_dataset_name)!=int:
             extracted_dataset_name = extracted_dataset_name.lower()
 
             # corrected extracted_dataset_name
             extracted_dataset_name = correction(extracted_dataset_name)
 
             print(f'after correction {extracted_dataset_name}')
+
         if extracted_dataset_name in master_dic_dataset_name.keys():
             
 
             transformed_dataset_name = master_dic_dataset_name[extracted_dataset_name]
 
-        
+        else:
+            if extracted_dataset_name != 0:
+                word_vectors = models.KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary= True, limit = 50000)
+                extracted_dataset_name = self.remove_punctuation_mark_from_user_entity(extracted_dataset_name)
+                print('extracted_dataset_name is', extracted_dataset_name)
+                extracted_dataset_name_list = extracted_dataset_name.split(' ')
+                try:
+                    entity_extracted_vec = []
+                    for word in extracted_dataset_name_list:
+                        entity_extracted_vec.append(word_vectors[word])
+
+                    entity_extracted_vec_mean = np.mean(np.array(entity_extracted_vec),axis=0).reshape(1, -1)
+                    list_of_datasets = list(master_dic_dataset_name.keys())
+                    for dataset_iter in list_of_datasets:
+                        dataset_iter = self.remove_punctuation_mark_from_user_entity(dataset_iter)
+                        list_dataset_iter = dataset_iter.split(' ')
+                        # print("dataset we have splited ")
+                        list_dataset_iter_vec = []
+                        for word in list_dataset_iter:
+                            # print("Inside for")
+                            if word in word_vectors.vocab:
+                                # print("If")
+                                list_dataset_iter_vec.append(word_vectors[word])
+
+                        
+                        if list_dataset_iter_vec.__len__() > 0:
+                            list_dataset_iter_vec_mean = np.mean(np.array(list_dataset_iter_vec),axis=0).reshape(1, -1)
+                            
+                            #computing similarity
+                            sim = cosine_similarity(entity_extracted_vec_mean, list_dataset_iter_vec_mean).item(0)
+                            # print(extracted_dataset_name,'-' , dataset_iter,':',sim)
+                            
+                            #making dic which is containing dataset name and similarity score with extracted entity
+                            global dic_of_similarity
+                            dic_of_similarity[dataset_iter] = sim
+                            
+                        # else:
+                        #     print(extracted_dataset_name,'-' , dataset_iter,':',0)
+                    #sorting a dictionary
+                    print(sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0])))
+                    sorted_dic_of_similarity = sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0]))
+                    
+                    #picking the topmost dataset name 
+                    most_similar_dataset = list(sorted_dic_of_similarity)[-1][0]
+                    transformed_dataset_name = master_dic_dataset_name[most_similar_dataset]
+                except:
+                    dispatcher.utter_message('Sorry but seems like there is some Misspell in Dataset Name')
+            else:
+                dispatcher.utter_message(text = "Sorry i coundn't interpret dataset name, please try again with complete name of dataset")
+                
         print(f"after tranformation ---> {transformed_dataset_name}")
 
 
@@ -136,11 +207,6 @@ class ActionDatasetName(Action):
 
             print(f"Returning value of {transformed_dataset_name}")
             return [SlotSet('dataset_name', transformed_dataset_name)]
-        
-        # if dataset_name is not present in our data we got from json file
-        else:
-            dispatcher.utter_message(text = """Can You Please rephrase your question about which dataset
-             you want ask """)
         
 
 class ActionGranularityLevel(Action):
