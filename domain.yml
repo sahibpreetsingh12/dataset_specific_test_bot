@@ -78,8 +78,11 @@ responses:
   utter_iamabot:
   - text: "I am a bot, powered by IDP."
 
-  # utter_feedback-form:
-  # # - text: "Feedback" 
+#   action_feedback-form:
+#   - text: "Feedback" 
+#     buttons:
+#         - title: "Feedback"
+#           payload: https://www.google.com
   # - custom:
   #     blocks:
   #     - title: "[feedback](https://www.google.com)"
