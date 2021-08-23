@@ -126,9 +126,7 @@ class ActionDatasetName(Action):
                             global dic_of_similarity
                             dic_of_similarity[dataset_iter] = sim
                             
-                        # else:
-                        #     print(extracted_dataset_name,'-' , dataset_iter,':',0)
-                    #sorting a dictionary
+                   
                     print(sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0])))
                     sorted_dic_of_similarity = sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0]))
                     
