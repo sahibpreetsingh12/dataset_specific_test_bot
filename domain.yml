@@ -39,6 +39,9 @@ intents:
 - about_data_about_data:
     use_entities: true
 
+- about_data_hindi:
+    use_entities: true
+
 
 entities:
 - dataset_name
@@ -50,10 +53,14 @@ entities:
 - source_link
 - data_extraction_page
 - about_data
+- language
 
 
 slots:
   dataset_name:
+    type: text
+    influence_conversation: true
+  language:
     type: text
     influence_conversation: true
 
@@ -102,6 +109,7 @@ actions:
 - action_about_data_data_extraction_page
 - action_about_data_about_data
 - action_feedback-form
+- action_language_detector
 
 forms: {}
 e2e_actions: []
