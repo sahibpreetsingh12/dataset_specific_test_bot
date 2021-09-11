@@ -9,6 +9,7 @@
 
 from typing import Any, Text, Dict, List
 import urllib.request, json
+from textblob import TextBlob
 from rasa_sdk.events import SlotSet
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
@@ -20,6 +21,34 @@ from sklearn.metrics.pairwise import cosine_similarity
 import sys
 
 dic_of_similarity = {}
+
+
+class ActionLanguageDetector(Action):
+
+    def name(self) -> Text:
+        return "action_language_detector"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+
+        # to get intent of user message
+        _intent=tracker.latest_message['intent'].get('name')
+        print("Intent of user message predicted by Rasa ",_intent)
+
+        text = tracker.latest_message['text'] # to get user typed message
+        lang = TextBlob(text)
+        lang = lang.detect_language()
+        print("Language of user message is ",lang)
+        if lang in _intent:
+            dispatcher.utter_message("Your message is in Hindi")
+            intent_found = json.dumps(tracker.latest_message, indent=4)
+            print("retrieval we found (i.e intent response key ) ",intent_found)
+        return [SlotSet('language', lang)]
+
+
+
 class ActionDatasetName(Action):
 
     def name(self) -> Text:
@@ -92,7 +121,8 @@ class ActionDatasetName(Action):
 
         else:
             if extracted_dataset_name != 0:
-                word_vectors = models.KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary= True, limit = 50000)
+                # word_vectors = models.KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary= True, limit = 50000)
+                word_vectors = models.KeyedVectors.load("/home/sahib/latest-models-and-files/GoogleNews-vectors-negative300.kv",mmap='r')
                 extracted_dataset_name = self.remove_punctuation_mark_from_user_entity(extracted_dataset_name)
                 print('extracted_dataset_name is', extracted_dataset_name)
                 extracted_dataset_name_list = extracted_dataset_name.split(' ')
@@ -362,6 +392,17 @@ class ActionSourcedata(Action):
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
+                                print("after correction in source",entity_iter)
+                                if entity_iter in p.keys():
+
+                                    # if entity is present in p then print the value of that entity
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                
+                                else:
+                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know Granularity level of a Dataset
+                                                                        say it like :- What is the Granularity level of Rainfall Data""")
                                 if entity_iter in p.keys():
                                     # if entity is present in p then print the value of that entity
                                     print(f"{entity_iter} ----> {p[entity_iter]}")
