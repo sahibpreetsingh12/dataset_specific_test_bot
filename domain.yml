@@ -39,9 +39,17 @@ intents:
 - about_data_about_data:
     use_entities: true
 
-- about_data_hindi:
+- nlu-faq-training-b1-hi:
     use_entities: true
 
+- nlu-faq-training-b2-hi:
+    use_entities: true
+
+- nlu-faq-training-b1-pa:
+    use_entities: true
+
+- nlu-faq-training-b3-hi:
+    use_entities : true
 
 entities:
 - dataset_name
@@ -85,6 +93,21 @@ responses:
   utter_iamabot:
   - text: "I am a bot, powered by IDP."
 
+  utter_nlu-faq-training-b1-hi:
+  - text: "This is Hindi answer 1"
+
+  utter_nlu-faq-training-b2-hi:
+  - text: "This is Hindi answer 2"
+
+  utter_nlu-faq-training-b1-pa:
+  - text: "This is Punjabi Answer 1"
+
+  utter_nlu-faq-training-b3-hi/is-paid-service:
+  - text: "अब तक यह एक सशुल्क सेवा नहीं है और पूरी तरह से खुला स्रोत है"
+
+  utter_nlu-faq-training-b3-hi/other-indian-languages:
+  - text: "इंडिया डेटा पोर्टल छह भाषाओं में उपलब्ध है जिसमें अंग्रेजी और अन्य भारतीय भाषाएं जैसे हिंदी, बंगाली, मराठी, उड़िया और तेलुगु शामिल हैं"
+
 #   action_feedback-form:
 #   - text: "Feedback" 
 #     buttons:
@@ -110,6 +133,7 @@ actions:
 - action_about_data_about_data
 - action_feedback-form
 - action_language_detector
+- action_language_detector_retrieval
 
 forms: {}
 e2e_actions: []

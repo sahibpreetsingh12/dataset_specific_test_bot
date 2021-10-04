@@ -62,7 +62,22 @@ rules:
     - intent: about_data_about_data
     - action: action_about_data_about_data
 
-- rule: Rule for lang detection
+- rule: Rule for lang detection for hindi1
   steps:
-    - intent: about_data_hindi
+    - intent: nlu-faq-training-b1-hi
     - action: action_language_detector
+
+- rule: Rule for lang detection for hindi2
+  steps:
+    - intent: nlu-faq-training-b2-hi
+    - action: action_language_detector
+
+- rule: Rule for lang detection for punjabi
+  steps:
+    - intent: nlu-faq-training-b1-pa
+    - action: action_language_detector
+
+- rule: Rule for lang detection for hindi retrieval
+  steps:
+    - intent: nlu-faq-training-b3-hi
+    - action: action_language_detector_retrieval

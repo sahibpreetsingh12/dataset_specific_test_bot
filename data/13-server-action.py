@@ -1,105 +1,150 @@
-# This files contains your custom actions which can be used to run
-# custom Python code.
-#
-# See this guide on how to implement these action:
-# https://rasa.com/docs/rasa/custom-actions
 
 
-# This is a simple example for a custom action which utters "Hello World!"
 
 from typing import Any, Text, Dict, List
 import urllib.request, json
-from textblob import TextBlob
+import os
 from rasa_sdk.events import SlotSet
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from gensim.models import KeyedVectors
-from spellcheck import correction , master_dic_dataset_name
+# from gensim.models import KeyedVectors
+from spellcheck import correction , master_dic_dataset_name,entity_mapper
 import numpy as np
-from gensim import models
+# from gensim import models
+import time
 from sklearn.metrics.pairwise import cosine_similarity
 import sys
 
+
 dic_of_similarity = {}
 
-
-class ActionLanguageDetector(Action):
+class ActionSlotSetter(Action):
 
     def name(self) -> Text:
-        return "action_language_detector"
+        return "action_slot_setter"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        
+        buttons = [
+           {"payload":'/ok{"intent_button":"faq-portal"}',"title":"Portal"},
+            {"payload":'/ok{"intent_button":"faq-visualisation"}',"title":"Visualisation"},
+            {"payload":'/ok{"intent_button":"faq-fel"}',"title":"Fellowship"},
+            {"payload":'/ok{"intent_button":"faq-train"}',"title":"Training"},
+             {"payload":'/ok{"intent_button":"faq-dataset"}',"title":"Dataset"}
+        ]
 
-        # to get intent of user message
-        _intent=tracker.latest_message['intent'].get('name')
-        print("Intent of user message predicted by Rasa ",_intent)
-
-        text = tracker.latest_message['text'] # to get user typed message
-        lang = TextBlob(text)
-        lang = lang.detect_language()
-        print("Language of user message is ",lang)
-        if lang == _intent[-2:]:
-            # print(lang,_intent[-2:])
-            # dispatcher.utter_message(f"Your message is in {lang}")
-            ls_of_lang_intent = []
-            intent_found = json.dumps(tracker.latest_message['intent_ranking'], indent=4)
-            for lang_finder_iter in tracker.latest_message['intent_ranking']:
-                print(lang_finder_iter)
-                if lang_finder_iter['name'][-2:] == lang:
-                    ls_of_lang_intent.append(lang_finder_iter)
-            print("\n","ls_of_lang_intent",ls_of_lang_intent)
-            # print("retrieval we found (i.e intent response key ) ",intent_found)
-
-            # sorting needed to get the highest confidence intent
-            intent_found = ls_of_lang_intent[0]['name']
-            intent_found = 'utter_'+str(intent_found)
-            print('after adding utter we found -- ', intent_found)
-            dispatcher.utter_message(response=intent_found)
-        return [SlotSet('language', lang)]
-
-
-class ActionLanguageDetectorRetrieval(Action):
-
-    def name(self) -> Text:
-        return "action_language_detector_retrieval"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        
-        print('Language detector for Retrieval')
-        # to get intent of user message
-        _intent=tracker.latest_message['intent'].get('name')
-        print("Intent of user message predicted by Rasa ",_intent)
-
-        text = tracker.latest_message['text'] # to get user typed message
-        lang = TextBlob(text)
-        lang = lang.detect_language()
-        print("Language of user message is ",lang)
-        if lang == _intent[-2:]:
-            # print(lang,_intent[-2:])
-            # dispatcher.utter_message(f"Your message is in {lang}")
-            ls_of_lang_intent = []
-            intent_found = json.dumps(tracker.latest_message['response_selector'][_intent]['ranking'], indent=4)
-            print(intent_found)
-            intent_found = json.loads(intent_found)
-            for lang_finder_iter in intent_found:
-                print(lang_finder_iter['intent_response_key'])
-                if lang_finder_iter['intent_response_key'].split('/',1)[0][-2:] == lang:
-                    ls_of_lang_intent.append(lang_finder_iter)
-            print("\n","ls_of_lang_intent",ls_of_lang_intent)
             
-        #     # sorting needed to get the highest confidence intent
-        print("retrieval we found (i.e intent response key ) ",ls_of_lang_intent[0]['intent_response_key'])
-        intent_found = ls_of_lang_intent[0]['intent_response_key']
 
-        intent_found = 'utter_'+str(intent_found)
-        print('after adding utter we found -- ', intent_found)
-        dispatcher.utter_message(response=intent_found)
-        return [SlotSet('language', lang)]
+        if tracker.slots['intent_button'] == None:
+            print("\n","slots value is ",tracker.slots['intent_button']) 
+            dispatcher.utter_message(text="Hi!! Welcome to India Data Portal. How can I help you??",buttons=buttons)
+
+
+        else:
+            print("\n","Now slots value is ",tracker.slots['intent_button'])  
+        
+            dispatcher.utter_message(text="Yes you are good to go")
+
+        return []
+
+class ActionFeedback(Action):
+    def name(self) -> Text:
+        return "action_feedback"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        dispatcher.utter_message(text="You can provide your feedback to us in this [Feedback Form](https://forms.gle/Fk1TxTzAteigKFG87)")
+        return []
+
+    
+class ActionVizFaq(Action):
+
+    def name(self) -> Text:
+        return "action_viz_faq"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        buttons = [
+            {"payload":'/ok{"intent_button":"faq-portal"}',"title":"Portal"},
+            {"payload":'/ok{"intent_button":"faq-visualisation"}',"title":"Visualisation"},
+            {"payload":'/ok{"intent_button":"faq-fel"}',"title":"Fellowship"},
+            {"payload":'/ok{"intent_button":"faq-train"}',"title":"Training"},
+            {"payload":'/ok{"intent_button":"faq-dataset"}',"title":"Dataset"}
+        ]
+        
+        # dictionary for mapped retrieval intents
+        mapped_intent= { "faq-portal" : "Portal",
+                        "faq-visualisation":"Visualisation",
+                        "faq-fel": "Fellowship",
+                        "faq-train":"Training",
+                        "faq-dataset":"Dataset",
+                        None: "No-option"}
+
+        # to get a slot value (here --> slot is intent_button)
+        print("\n","slots value is ",tracker.slots['intent_button']) 
+         
+        if tracker.slots['intent_button'] ==None:
+            slot_value_clicked = mapped_intent[tracker.slots['intent_button']]
+        else:
+            slot_value_clicked = tracker.slots['intent_button']
+
+        # to get intent of user message
+        _intent=tracker.latest_message['intent'].get('name')
+        print("Intent of user message predicted by Rasa ",_intent)
+
+        print(tracker.latest_message['text']) # to get user typed message 
+
+        intent_found = json.dumps(tracker.latest_message['response_selector'][_intent]['ranking'][0]['intent_response_key'], indent=4)
+        print("retrieval we found (i.e intent response key ) ",intent_found)
+
+        # confidence of retrieval intent we found
+        retrieval_intent_confidence = tracker.latest_message['response_selector'][_intent]['response']['confidence']*100
+        
+        print(f"retrieval_intent_confidence we found was {retrieval_intent_confidence}")
+        if str(tracker.latest_message['text']) == str('https://forms.gle/Fk1TxTzAteigKFG87'):
+            dispatcher.utter_message(text='You can fill and submit the Google form')
+
+        elif _intent[:-3] == slot_value_clicked[0] :
+            """ if intent found is same as faq-visualisation or faq-portal or any other category
+            -3 tells we have left - and batch number 
+            ex from faq-visualisation-b0 we took faq-visualisation """
+
+
+        #used eval to remove quotes around the string
+            intent_found = f'utter_{eval(intent_found)}'
+            print('after adding utter we found -- ', intent_found)
+            dispatcher.utter_message(response = intent_found) # use response for defining intent name
+    
+
+        
+        elif slot_value_clicked == 'No-option':
+            dispatcher.utter_message(text = "Please select any option first",buttons=buttons )
+        
+        else:
+
+            # if retrieval_intent_confidence > 90:
+            intent_found = f'utter_{eval(intent_found)}'
+            
+            dispatcher.utter_message(response = intent_found)
+
+            dispatcher.utter_message(text = f"Seems like you want to ask question from {mapped_intent[ _intent[:-3]]} If yes you are good to go with that  but if you want to ask question from any other category please select a button",buttons=buttons)
+            
+            tracker.slots['intent_button'] = _intent[:-3]
+
+            
+            print(f"Now slot value is {tracker.slots['intent_button']}","\n")
+            
+
+
+        return [SlotSet(key = "intent_button", value= [str(_intent[:-3])] ) ] # setting slot values
+    
+
+
 
 class ActionDatasetName(Action):
 
@@ -120,6 +165,7 @@ class ActionDatasetName(Action):
         # print(user_entity)
         return user_entity
 
+    
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
@@ -171,54 +217,75 @@ class ActionDatasetName(Action):
 
             transformed_dataset_name = master_dic_dataset_name[extracted_dataset_name]
 
-        else:
-            if extracted_dataset_name != 0:
-                # word_vectors = models.KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary= True, limit = 50000)
-                word_vectors = models.KeyedVectors.load("/home/sahib/latest-models-and-files/GoogleNews-vectors-negative300.kv",mmap='r')
-                extracted_dataset_name = self.remove_punctuation_mark_from_user_entity(extracted_dataset_name)
-                print('extracted_dataset_name is', extracted_dataset_name)
-                extracted_dataset_name_list = extracted_dataset_name.split(' ')
-                try:
-                    entity_extracted_vec = []
-                    for word in extracted_dataset_name_list:
-                        entity_extracted_vec.append(word_vectors[word])
+        # else:
+        #     if extracted_dataset_name != 0:
+        #         start_time = time.time()
+        #         # with limit ---> can't use with limit then we'll be limited to few words only
+        #         # word_vectors = models.KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary= True, limit = 100000)
+                
+        #         # without limit ---> we are not using it because it will take too much time for loading and hence chatbot will give
+        #         # time out error
+        #         # word_vectors = models.KeyedVectors.load_word2vec_format("/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.bin",binary= True)
+                
+        #         # keyed vector
+        #         # process = psutil.Process(os.getpid())
 
-                    entity_extracted_vec_mean = np.mean(np.array(entity_extracted_vec),axis=0).reshape(1, -1)
-                    list_of_datasets = list(master_dic_dataset_name.keys())
-                    for dataset_iter in list_of_datasets:
-                        dataset_iter = self.remove_punctuation_mark_from_user_entity(dataset_iter)
-                        list_dataset_iter = dataset_iter.split(' ')
-                        # print("dataset we have splited ")
-                        list_dataset_iter_vec = []
-                        for word in list_dataset_iter:
-                            # print("Inside for")
-                            if word in word_vectors.vocab:
-                                # print("If")
-                                list_dataset_iter_vec.append(word_vectors[word])
+                
+        #         print("phele tha ",os.system("free -g"),'\n')
+        #         # word_vectors = models.KeyedVectors.load('/home/ubuntu/17aug_word2vec_bot/GoogleNews-vectors-negative300.kv', mmap='r')
+        #         word_vectors = models.KeyedVectors.load_word2vec_format("/app/GoogleNews-vectors-negative300.bin",binary= True, limit = 50000)
+                
+        #         print("--- %s seconds ---" % (time.time() - start_time))
+        #         extracted_dataset_name = self.remove_punctuation_mark_from_user_entity(extracted_dataset_name)
+        #         print('extracted_dataset_name is', extracted_dataset_name)
+        #         extracted_dataset_name_list = extracted_dataset_name.split(' ')
+        #         try:
+        #             entity_extracted_vec = []
+        #             for word in extracted_dataset_name_list:
+        #                 if word in word_vectors.vocab:
+        #                     print(word)
+        #                     entity_extracted_vec.append(word_vectors[word])
+                    
+        #             print('length of list we got is',len(entity_extracted_vec))
+        #             entity_extracted_vec_mean = np.mean(np.array(entity_extracted_vec),axis=0).reshape(1, -1)
+        #             print('shape we got after mean is', entity_extracted_vec_mean.shape)
+        #             list_of_datasets = list(master_dic_dataset_name.keys())
+        #             for dataset_iter in list_of_datasets:
+        #                 dataset_iter = self.remove_punctuation_mark_from_user_entity(dataset_iter)
+        #                 list_dataset_iter = dataset_iter.split(' ')
+        #                 # print("dataset we have splited ")
+        #                 list_dataset_iter_vec = []
+        #                 for word in list_dataset_iter:
+        #                     # print("Inside for")
+        #                     if word in word_vectors.vocab:
+        #                         # print("If")
+        #                         list_dataset_iter_vec.append(word_vectors[word])
 
                         
-                        if list_dataset_iter_vec.__len__() > 0:
-                            list_dataset_iter_vec_mean = np.mean(np.array(list_dataset_iter_vec),axis=0).reshape(1, -1)
+        #                 if list_dataset_iter_vec.__len__() > 0:
+        #                     list_dataset_iter_vec_mean = np.mean(np.array(list_dataset_iter_vec),axis=0).reshape(1, -1)
                             
-                            #computing similarity
-                            sim = cosine_similarity(entity_extracted_vec_mean, list_dataset_iter_vec_mean).item(0)
-                            # print(extracted_dataset_name,'-' , dataset_iter,':',sim)
+        #                     #computing similarity
+        #                     sim = cosine_similarity(entity_extracted_vec_mean, list_dataset_iter_vec_mean).item(0)
+        #                     # print(extracted_dataset_name,'-' , dataset_iter,':',sim)
                             
-                            #making dic which is containing dataset name and similarity score with extracted entity
-                            global dic_of_similarity
-                            dic_of_similarity[dataset_iter] = sim
+        #                     #making dic which is containing dataset name and similarity score with extracted entity
+        #                     global dic_of_similarity
+        #                     dic_of_similarity[dataset_iter] = sim
                             
-                   
-                    print(sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0])))
-                    sorted_dic_of_similarity = sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0]))
+        #            # sorted list of tuples with their cosine similairty
+        #             # print(sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0])))
+        #             sorted_dic_of_similarity = sorted(dic_of_similarity.items(), key = lambda kv:(kv[1], kv[0]))
                     
-                    #picking the topmost dataset name 
-                    most_similar_dataset = list(sorted_dic_of_similarity)[-1][0]
-                    transformed_dataset_name = master_dic_dataset_name[most_similar_dataset]
-                except:
-                    dispatcher.utter_message('Sorry but seems like there is some Misspell in Dataset Name')
-            else:
-                dispatcher.utter_message(text = "Sorry i coundn't interpret dataset name, please try again with complete name of dataset")
+        #             #picking the topmost dataset name 
+        #             most_similar_dataset = list(sorted_dic_of_similarity)[-1][0]
+        #             transformed_dataset_name = master_dic_dataset_name[most_similar_dataset]
+        #         except Exception as e:
+        #             print("Oops!", e.__class__, "occurred.")    
+        #             dispatcher.utter_message('Sorry but seems like there is some Misspell in Dataset Name')
+            
+        #     else:
+        #         dispatcher.utter_message(text = "Sorry i coundn't interpret dataset name, please try again with complete name of dataset")
                 
         print(f"after tranformation ---> {transformed_dataset_name}")
 
@@ -271,7 +338,9 @@ class ActionDatasetName(Action):
                             
                             # spellcheck the entity
                             entity_iter = correction(entity_iter)
-                            if entity_iter in p.keys():
+                            if entity_iter in p.keys() and entity_iter in entity_mapper:
+                                entity_iter = entity_mapper[entity_iter]
+                                
                                 # if entity is present in p then print the value of that entity
                                 print(f"{entity_iter} ----> {p[entity_iter]}")
                                 dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
@@ -283,11 +352,12 @@ class ActionDatasetName(Action):
                     
                     else:
                         dispatcher.utter_message(text = f'Yes you can start with {temp_dataset_name}')
-                        
+        else:
+            dispatcher.utter_message(text='Sorry but seems like there is some Misspell in Dataset Name')                
 
-            print(f"Returning value of {transformed_dataset_name}")
-            return [SlotSet('dataset_name', transformed_dataset_name)]
-        
+        print(f"Returning value of {transformed_dataset_name}")
+        return [SlotSet('dataset_name', temp_dataset_name)]
+       
 
 class ActionGranularityLevel(Action):
 
@@ -307,6 +377,7 @@ class ActionGranularityLevel(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
+                dataset_name_ = dataset_name_.lower() 
 
                 # calling global dictionary
                 global master_dic_dataset_name
@@ -314,6 +385,8 @@ class ActionGranularityLevel(Action):
                 # if dataset name that is extracted from user message is present in our data we got from json file
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
+
                 if dataset_name_ in master_dic_dataset_name.keys():
         
                     dataset_name_ = master_dic_dataset_name[dataset_name_]
@@ -322,7 +395,8 @@ class ActionGranularityLevel(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in gran {extracted_ls_entity}")
-
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -355,11 +429,11 @@ class ActionGranularityLevel(Action):
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
 
-                                if entity_iter in p.keys():
-
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
                                     print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
@@ -395,13 +469,15 @@ class ActionSourcedata(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
-
+                dataset_name_ = dataset_name_.lower() 
                 # calling global dictionary
                 global master_dic_dataset_name
 
                 # if dataset name that is extracted from user message is present in our data we got from json file
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
+
                 if dataset_name_ in master_dic_dataset_name.keys():
         
                     dataset_name_ = master_dic_dataset_name[dataset_name_]
@@ -411,7 +487,9 @@ class ActionSourcedata(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in source {extracted_ls_entity}")
-
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
+                    print('after removing the entity dataset name- ', extracted_ls_entity)
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -445,26 +523,18 @@ class ActionSourcedata(Action):
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
                                 print("after correction in source",entity_iter)
-                                if entity_iter in p.keys():
 
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
                                     print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
                                     dispatcher.utter_message(text = """Ex :Like if you want to know Granularity level of a Dataset
                                                                         say it like :- What is the Granularity level of Rainfall Data""")
-                                if entity_iter in p.keys():
-                                    # if entity is present in p then print the value of that entity
-                                    print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
-                                
-                                else:
-                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
-                                    dispatcher.utter_message(text = """Ex :Like if you want to know Source of a Dataset
-                                                                        say it like :- What is the Source of Rainfall Data""")
-                        
+                                                
                         else:
                             dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
                             dispatcher.utter_message(text = """Ex :Like if you want to know Source of a Dataset
@@ -493,11 +563,15 @@ class ActionMethodology(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
-  
+                dataset_name_ = dataset_name_.lower() 
+                
+
                 global master_dic_dataset_name
 
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
+
                 if dataset_name_ in master_dic_dataset_name.keys():
         
                     dataset_name_ = master_dic_dataset_name[dataset_name_]
@@ -507,7 +581,8 @@ class ActionMethodology(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in Methodology {extracted_ls_entity}")
-
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -540,10 +615,18 @@ class ActionMethodology(Action):
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
-                                if entity_iter in p.keys():
+
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
-                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    limited_methodology = p[entity_iter]
+                                    if limited_methodology!=None:
+                                        limited_methodology=limited_methodology[:350]
+                                        dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {limited_methodology} for more [click here](https://indiadataportal.com/visualize?language=English&location=India#?dataset_id={extracted_id}&tab=details-tab)")
+                                    else:
+
+                                        dispatcher.utter_message(text = 'It will be updated in future')
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
@@ -576,12 +659,13 @@ class ActionFrequency(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
-
+                dataset_name_ = dataset_name_.lower() 
                  # calling global dictionary
                 global master_dic_dataset_name
                 
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
 
                 # if dataset name that is extracted from user message is present in our data we got from json file
                 if dataset_name_ in master_dic_dataset_name.keys():
@@ -593,7 +677,8 @@ class ActionFrequency(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in frequency {extracted_ls_entity}")
-
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -625,12 +710,13 @@ class ActionFrequency(Action):
                                 print("yes i am in frequency")
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
-                                entity_iter = correction(entity_iter)                                
-                                if entity_iter in p.keys():
+                                entity_iter = correction(entity_iter)   
 
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
-                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
@@ -663,6 +749,7 @@ class ActionLastDateUpdated(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
+                dataset_name_ = dataset_name_.lower() 
 
                 # calling global dictionary
                 global master_dic_dataset_name
@@ -670,6 +757,8 @@ class ActionLastDateUpdated(Action):
 
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
+                
 
                 # if dataset name that is extracted from user message is present in our data we got from json file
                 if dataset_name_ in master_dic_dataset_name.keys():
@@ -682,7 +771,8 @@ class ActionLastDateUpdated(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in frequency {extracted_ls_entity}")
-
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -714,11 +804,12 @@ class ActionLastDateUpdated(Action):
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
-                                if entity_iter in p.keys():
 
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
-                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
@@ -751,12 +842,13 @@ class ActionSourceLink(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
-
+                dataset_name_ = dataset_name_.lower() 
                 # calling global dictionary
                 global master_dic_dataset_name
 
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
 
                 # if dataset name that is extracted from user message is present in our data we got from json file
                 if dataset_name_ in master_dic_dataset_name.keys():
@@ -769,6 +861,10 @@ class ActionSourceLink(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in source link {extracted_ls_entity}")
+                print('before removing datatset name from list - ', extracted_ls_entity)
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
+                    print('after removing datatset name from list - ', extracted_ls_entity)
 
 
                 dict_of_mapped_data_with_id = {}
@@ -801,12 +897,12 @@ class ActionSourceLink(Action):
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
-                                if entity_iter in p.keys():
 
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
-                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
-                                
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
                                     dispatcher.utter_message(text = """Ex :Like if you want to know Source Link for a Dataset 
@@ -838,12 +934,13 @@ class ActionDataExtractionPage(Action):
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
-
+                dataset_name_ = dataset_name_.lower() 
                 # calling global dictionary
                 global master_dic_dataset_name
 
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
 
                 # if dataset name that is extracted from user message is present in our data we got from json file
                 if dataset_name_ in master_dic_dataset_name.keys():
@@ -856,7 +953,8 @@ class ActionDataExtractionPage(Action):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
                 print(f"Entites we extracted in Extraction page {extracted_ls_entity}")
-
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -888,11 +986,12 @@ class ActionDataExtractionPage(Action):
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
-                                if entity_iter in p.keys():
 
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
-                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" For {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
@@ -906,44 +1005,45 @@ class ActionDataExtractionPage(Action):
             else:
                 dispatcher.utter_message(text = "Can you tell which dataset it is")
 
-
-class ActionAboutData(Action):
+class ActionDetailedSourceName(Action):
 
     def name(self) -> Text:
-        return "action_about_data_about_data"
+        return "action_about_data_source_name_det"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
             # intent of user message 
-            # print("\n",tracker.get_intent_of_latest_message())
+            print(tracker.get_intent_of_latest_message())
 
-            print("\n","Now slots value in about data is ",tracker.slots['dataset_name'])
+            print("\n","Now slots value in Detailed source name is ",tracker.slots['dataset_name'])
 
             ls_entity =tracker.latest_message['entities'] # to get entities from user message
             if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
                 # name of datset from slot we had
                 dataset_name_ = tracker.slots['dataset_name']
-
+                dataset_name_ = dataset_name_.lower() 
                 # calling global dictionary
                 global master_dic_dataset_name
 
+                # if dataset name that is extracted from user message is present in our data we got from json file
                 # spellcheck the name of dataset
                 dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
 
-                # if dataset name that is extracted from user message is present in our data we got from json file
                 if dataset_name_ in master_dic_dataset_name.keys():
         
                     dataset_name_ = master_dic_dataset_name[dataset_name_]
-
 
                 extracted_ls_entity = []
                 for i in range(len(ls_entity)):
                     extracted_ls_entity.append(ls_entity[i]['entity'])
                 # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
-                print(f"Entites we extracted in about data {extracted_ls_entity}")
-
+                print(f"Entites we extracted in detailed source name  {extracted_ls_entity}")
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
+                    print('after removing the entity dataset name- ', extracted_ls_entity)
 
                 dict_of_mapped_data_with_id = {}
                 with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
@@ -966,66 +1066,130 @@ class ActionAboutData(Action):
                                 if data['dataset_id']==extracted_id:
                                     p = json.dumps(data)
                                     p = json.loads(p)
+                                    # print(p,'\n')
                         
 
                         if len(extracted_ls_entity) >=1:
                             # iterating through all entites other than dataset_name
                             for entity_iter in extracted_ls_entity:
-                                print("yes i am in about data Link")
+                                print("yes i am in detailed source name")
                                 # check if entity present in extracted_ls_entity is also present in p ( data in db)
                                 # spellcheck the entity
                                 entity_iter = correction(entity_iter)
-                                if entity_iter in p.keys():
+                                print("after correction in detailed source name",entity_iter)
 
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
                                     # if entity is present in p then print the value of that entity
-                                    # print(f"{entity_iter} ----> {p[entity_iter]}")
-                                    dispatcher.utter_message(text = f"{entity_iter} is {p[entity_iter]}")
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
                                 
                                 else:
                                     dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
-                                    dispatcher.utter_message(text = """Ex :Like if you want to know about a Dataset 
-                                                                        say it like :- can you tell me about soil data""")
-                        
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know Granularity level of a Dataset
+                                                                        say it like :- What is the Granularity level of Rainfall Data""")
+                                                
                         else:
                             dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
-                            dispatcher.utter_message(text = """Ex :Like if you want to know about a Dataset 
-                                                                        say it like :- can you tell me about soil data""")
+                            dispatcher.utter_message(text = """Ex :Like if you want to know Source of a Dataset
+                                                                        say it like :- What is the Source of Rainfall Data""")
+
             else:
                 dispatcher.utter_message(text = "Can you tell which dataset it is")
 
+class ActionDateofRetrievals(Action):
 
-
-###########################
-
-
-class ActionCarousel(Action):
     def name(self) -> Text:
-        return "action_feedback-form"
+        return "action_about_data_date_of_retrievals"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        # message = {
-        #     "type": "template",
-        #     "payload": {
-        #         "template_type": "generic",
-        #         "elements": [
-        #             {
-        #                 "title": "Feedback",
-        #                 # "subtitle": "feedback form",
-        #                 "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANsAAADmCAMAAABruQABAAABmFBMVEX////+xGP//vz//f/8/Pz7//k9UV1dVTzy8PT8w2D+wmPOqVv7wmVvfX44Njj/zGP6xV/oumT/w2obNUTcrV1uY0wAHTz3w2JmcniHdU0QHyn/y2sAAAD4ymdMSUbetWFjt/BZrd1dtec3ZoNQVEZatOLEpVw7PDQ7cZXh4eEaMERGUVHL0tRETmLnvWXf39+cg1YALEhhvfBfX1+SkpJQjrJ1gYpwcHAnJyfGxsaurq4tPDS6urpUVFQRHymgoKCAgICCgoIVFRX/zFn+wlMAGC2Tk5Oqqqp0dHQRERH2//L/9v/v8+Hc49uapqA1T2Zieoy6w89SZHSIkJoFJDKQparNt29IWWElMC23omDz1nErM0x0dYr61FyZhE0jLVHFr1eqiVxSVjtRQz9KRlFqZVpoaFBuY01mZ0GOhU4AACoAF1sAEkMAHDWaj2UwO0UAABrMpGKKdVr9x3tSib1ntf9ZtdcwKzcmXG5QhqYAKCk1NyUiOFPsxHy+zMJ7jolLlbWYeVdBW1ozUT5wdVkZQFIAIjOtjk4dkFe0AAALjklEQVR4nO2c+1fbRhbH9RgFSVYkIQcE2DK2E2xkHCtg4xd2HGODCTSbEMgCacKStpsHG0LaZJPSZttudkP/7b0jP8BgwKe/oOnO54CEjH3OfHUfM3NnZIahUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVC8SoChxgeCf29mec5oc+3egPE8fwKz/XB8jLHw53gL7vF/bLCC4KAG90HTPOHGAQwBTRX6Ad8HxiG4y67zf2CwNeQ2B9ffbUMdiMn4iCP3PvLyJW+uP9gVUQEOSWHkg/H4gP9ER9eEzmCtNkP87d8qcF+SMUG1h8JxMQb4kvrPwzWNFbvA037a3zjHkOM4dDa5pYlsVI/KNLj0a8LxNiN4Z7Ed2qGLLEXIAOK/HT7byWBGG3Ck3hMlyVJ7gPJwNqIkcYII/GtgKyfb7eWNs3QthMlchIlys7FtIscsoVkWLf8pctucf+gJz/v1BSl7XZKT1raFFN7BnYjxCkRQldVn6ZAnpR1zbIC1ikCkPw7vqndSpRI6QM62hRDt4ZufHPjJOVvY+w7o1sbuuxW90dbm6yZWurG1NR3oS6+m5oKxTSzRrQ2ti7Lemo8dW28m9T4OPQOdbK1QaJgtboW0LoI6JIWMBWZbG2GYZqGwUodGa4UXQdzagrZ8cbqhlw3zLrRPRBRJMWoS4ZEuDZdkgzFMPTu0bGum7qk6LIB+hRNMi1XW6tyctmNv4CjeJPlgFZ7Wgv0pFaD4FMMWXG1CQjhT1522y+io02WtNjA35+/fDHUgxfPXz5/EdNk2WhpwwU9r5vtSNs74/Gr3X+83hvuyeu916/fWJJuWDBWxp8TGO9H3VH/VpeVwUFF7l1MMExFkeqyLlvb0/v7+37//v6a553yKJdYKcvSNEk7A13TYWwpa9vD910+vf3O6055bDwZkHBlofecVNchkbCyBfO36YMJl+sLjy678RdwZDcTN94w2F7gDKm4fQRom52JRsPhcGRh5LIbfwFHcxxF0SWD7T1LlXQNEinYTtJugbZwNDoRjtwmSBsL8zdTMXtimaYOEadIrt1I0wZm+X70TH6A3xiMWo5rGyNGG1vXni0k/Gcx5088O6GNHLuZumb6xq+dyfi4VTMVMu1mvHsHyUTpnSdxGlGUAKna6tCHsYZZO6PoakGOlMAnLRK1weRUMXXL7Gm3zvTtXe3NT+//GY6GidIG0zO83gG99znIbOCNf3bmA2nadEmGRGicu0YlsW68TRCmTcYLcCauj5yD8Q60vQ+T5pOGmysM+fx4k60h//soaXbD/TK4nNZZIe1F7enWxx/DYdK0QddljccuYOtZ3D87QY5PClnQhguT1s7A/uamGt/c3IyrqjoXD8VP8fX92fBEJEqUNpk19NTLhexam8zaWjZxf/IkBxGYukWJ0cZfVb8PyKZkje5eFcVlgeeRKApfiagwfACz0C4mojPRSJgcn4R4i2mGrm3fvol4tFx4+DBrM4LAc4W9g5mJbmC2HXX1EqMt7qvJ2tbmtM0vC6uJuz+NbYg8wwu/JCZP2g0PJAGCtP3sC2gxdXoVrGV/Urf+NTr2aAWBtsMDN7aO+ySAMwk52tSYtXMjUUTcspj9adsCnb+KoC2ZODgVbh0DkqGN//Vj7PHo3iKEGJ88HErV9Zh6Fe/xdb7+8cNEtzicRqLYJ2GOM0HGvDv2au/qPYbnhI2PW5qs/Z7HNWNerPi/XO/JZASypfe1gboHcy/VkXu4xF/afZnCQ/3DEmIEjhMrI1M98R+A+SLr3tcGMea/mRR4xIlXPu4EJEkfnXYEhhMEDjnJXqyOJN5/gHh7cNlNvxA0snCzxHOcwBR3f3hqsPrgwE1R4Bl4pdceGfxiMv3pt5nIbe9rE7J7DYHjBUG8kthhYTbwffyJiJdFIebQCRjE4RNf2v/yIer5mjloc0oih1dCGwtgNkUPPFtvIL69LNp6MKD13vZzAmJx8/7Eofe1wWAEBiHcirixMK7gusG/138BM4Ke5gMBzQcDWu9leNeWAsoM/7jpXZ/k8MMq0NKmJSDa9l48ZeWAlHq+ca/7ncKp5V8OonTM/8C7S6eupyHcPgSWEUcOfaYuK4GY+mlj4/PNJlf+MzX1xGFWuj+JQBu68nbEu9ogojgORxaDna2YGKrhKh7MUNU5dXOuyf7+R3X306mEie+IuL/mXW0QRRzDQfbHISSOJHx13dBlSUulrMHBVIfH/32bPPUgB840ongZre4XuP3tp1FK+0O6pciWYehK4GjrDMvKT1/trp7q6CBKkXetxrg3v7C2tlZdy2azG5sxyTLqg2xdZxXTbO8Ogvl47fmwc/qTWJyHteHdL9lD/5cvX/z+xN6LlG5IOt6/K+mgrb3QremD6hXhZJ50s6uHpbl2y67PRmZnf5u97v/dBG14u4LiLgqALLxLOWAqvtsPesngvL15BtqWHYvMhMMz0cm5az130UPwbb99xBDzUFiHtrZINDoZv9bccK10a5NYa2DP9vyOu9N07Ha2NlnbSowwxGrDxauztdVe7hVwP0gabbtFJyKTak9tcmAn/hmyJHnxxhzTdobdAqMLJZ4h0G5M2ycnXJ88kSfxZcD37Wdx5VT3RgDYJ2+72iKTcz5WhiGWAf23az7J0CQzYL05LEI/fdkN/QMc03Y97guwEt6P3bKaYcqSKfkGNmwCNib3oK0tguPNF5DxkndTG0x1TEMxle0xMBtPorqmtplIBMfbuMbKitLZXlLDew59NzYcPHMlT1rbblE3T45rkuyOJt0kwkqGKZm3hou4tsUTazfcd0P/5gso+EFgBcecCSfWsnzfjDi48MB7elTcm5ZPAuHJzd8Hjx4z0ll5fHzr2Qu8tsMR6ZM4tWfXr09OTl6fvO/Pxweej46+ejU6Ojo0NDAQj+dvL2Q9XTU4F2y3hYWFt/A7tj/yeX1heHd3F19NT3+68jC7mhQJdMYWkCLE1dVCIZksFGyOE+3kKlwmk47YksSR8tRsD47lP24FDxtbXwYEJ7fwT642XMPDBR0er17AWF9w1zYY94pv1rFI1oYtg4v9WIzAuV8ZJDSXprBFCezW2rirAbj5HIyGcR+Gc70rh8MnnvF2tedculaeuvIG11oqINYlKRQKhUKhUCgUyv837Vlo84xOTkpR54Raf6BjL3sZ1Gozah3br7Vmr0yr1ND+X/d98DausmbrO38e/bMtqSUTtS1LgtGO2umKE5mOVzZ/8KY0puOF7ToEYnp4rjdpKTm6bh0ROnaN2rZFR67rdWzbsW0k2nAWET7iC8exwYRIdBzHNZtoN6XZTtLBFwzqFGi9jJoPqTm7Mh8KqSWUh4uMmJkvh0J3HMZJq2W1CuLEO/kC9s6KGiqXk6W0zRTzBQK03a3aSYdZLCeTSVGcX8QXubTtFNIh2wlVxFKwgJCtqotgq2qoaNtJsZi2C2qFhHjLV/BxMYd9T8y7X+KUW4Jm22rGLpcYO19kUKlcSTtMwTUeg4q5QjpDgDLQlis1CmhRrTQqonh3qVFJMrkc3gm7tOSkl4q5nIhQOuOESkxGFd2M0iiX0yIR6SSfT5craDG/tJQTxWC5ulQCu0GiEKugLZ0JpW1k5xcL6UV0JyS6ObU4Hyo7RPQB+SqkRiaTdrPlfEOEBJm7g+1WrtrlomiHlphiMJTOl+1MvtmzN0KFXI6IZcf5CvauTPpYvC3heCvkSw7EG5PLM2XILUW1UIDQwzRwLmmQMDSZz7jaQqVSwxGDdwqlAsqVnUJ1vso45YyzGCwywRL0bLmqWA1Wk8miXQSPXLxre18aE2rgYyUfnA9WkQpHcL5gMIhN5uSCd/MNphjCQ7FGDvdqwWDIKS3ZDErnCLDbH+ZPJg0dS45/MmkUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQunwPzjo6C90LXPtAAAAAElFTkSuQmCC",
-        #                 "buttons": [ 
-        #                     {
-        #                     "title": "Click here",
-        #                     "url": "https://docs.google.com/forms/d/e/1FAIpQLSe4ZbIwB0BmX1_wEXUlL0Ywl_dt7US-Ipa_YLU2mDtjkqfPjg/viewform",
-        #                     "type": "web_url"
-        #                     }
-        #                 ]
-        #             }
-        #         ]
-        #         }
-        # }
-        # dispatcher.utter_message(attachment=message)
 
-        dispatcher.utter_message(text = "Please give your feedback on this [form](https://forms.gle/Fk1TxTzAteigKFG87)")
-        return []
+            # intent of user message 
+            print(tracker.get_intent_of_latest_message())
+
+            print("\n","Now slots value in date of retrievals is ",tracker.slots['dataset_name'])
+
+            ls_entity =tracker.latest_message['entities'] # to get entities from user message
+            if  tracker.slots['dataset_name'] and  tracker.slots['dataset_name']!=None:
+                # name of datset from slot we had
+                dataset_name_ = tracker.slots['dataset_name']
+                dataset_name_ = dataset_name_.lower() 
+                # calling global dictionary
+                global master_dic_dataset_name
+
+                # if dataset name that is extracted from user message is present in our data we got from json file
+                # spellcheck the name of dataset
+                dataset_name_ = correction(dataset_name_)
+                corrected_dataset_name_ = dataset_name_
+
+                if dataset_name_ in master_dic_dataset_name.keys():
+        
+                    dataset_name_ = master_dic_dataset_name[dataset_name_]
+
+                extracted_ls_entity = []
+                for i in range(len(ls_entity)):
+                    extracted_ls_entity.append(ls_entity[i]['entity'])
+                # extracted_ls_entity = list(filter(lambda x:x!='dataset_name', extracted_ls_entity))
+                print(f"Entites we extracted in date of retrieval {extracted_ls_entity}")
+                if 'dataset_name' in extracted_ls_entity:
+                    extracted_ls_entity.remove('dataset_name')
+                    print('after removing the entity dataset name- ', extracted_ls_entity)
+
+                dict_of_mapped_data_with_id = {}
+                with urllib.request.urlopen("https://indiadataportal.com/meta_data_info") as url:
+                    data = json.loads(url.read().decode())
+                    temp_data  = json.dumps(data, indent=4, sort_keys=True)
+                    temp_data = json.loads(temp_data)
+                    for i in range(len(temp_data)):
+                        data = temp_data[i]
+                        # print(f"{data['dataset_name']} ---- > {data['dataset_id']} " )
+                        dict_of_mapped_data_with_id[data['dataset_name']] = data['dataset_id']
+
+                    # if extracted dataset name is present in our data we got from json file
+                    if dataset_name_ in dict_of_mapped_data_with_id.keys():
+                        
+                        # extract id for that dataset name
+                        extracted_id = dict_of_mapped_data_with_id[dataset_name_]
+
+                        for i in range(len(temp_data)):
+                                data = temp_data[i]
+                                if data['dataset_id']==extracted_id:
+                                    p = json.dumps(data)
+                                    p = json.loads(p)
+                                    # print(p,'\n')
+                        
+
+                        if len(extracted_ls_entity) >=1:
+                            # iterating through all entites other than dataset_name
+                            for entity_iter in extracted_ls_entity:
+                                print("yes i am in date of retrievals")
+                                # check if entity present in extracted_ls_entity is also present in p ( data in db)
+                                # spellcheck the entity
+                                entity_iter = correction(entity_iter)
+                                print("after correction in date of retrievals ",entity_iter)
+
+                                if entity_iter in p.keys() and entity_iter in entity_mapper.keys():
+                                    new_entity_iter = entity_mapper[entity_iter]
+                                    # if entity is present in p then print the value of that entity
+                                    print(f"{entity_iter} ----> {p[entity_iter]}")
+                                    dispatcher.utter_message(text = f" for {corrected_dataset_name_} {new_entity_iter} is {p[entity_iter]}")
+                                
+                                else:
+                                    dispatcher.utter_message(text = 'Sorry but can you pls tell again  what feature you are looking for')
+                                    dispatcher.utter_message(text = """Ex :Like if you want to know Granularity level of a Dataset
+                                                                        say it like :- What is the Granularity level of Rainfall Data""")
+                                                
+                        else:
+                            dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
+                            dispatcher.utter_message(text = """Ex :Like if you want to know Date of Retrieval for a Dataset
+                                                                        say it like :- Can you provide me the retrieval date for foodgrain stock data""")
+                    else:
+                        dispatcher.utter_message(text = f'Sorry but what exactly you wanted I could not get that')
+                        dispatcher.utter_message(text = """Ex :Like if you want to know Date of Retrieval for a Dataset
+                                                                        say it like :- Can you provide me the retrieval date for foodgrain stock data""")
+            else:
+                dispatcher.utter_message(text = "Can you tell which dataset it is")
+
+
