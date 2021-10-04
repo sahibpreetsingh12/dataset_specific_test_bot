@@ -94,13 +94,13 @@ responses:
   - text: "I am a bot, powered by IDP."
 
   utter_nlu-faq-training-b1-hi:
-  - text: "This is Hindi answer 1"
+  - text: "यह हिंदी उत्तर है 1"
 
   utter_nlu-faq-training-b2-hi:
-  - text: "This is Hindi answer 2"
+  - text: "यह हिंदी उत्तर है 2"
 
   utter_nlu-faq-training-b1-pa:
-  - text: "This is Punjabi Answer 1"
+  - text: "ਇਹ ਹੈ ਪੰਜਾਬੀ ਜਵਾਬ 1"
 
   utter_nlu-faq-training-b3-hi/is-paid-service:
   - text: "अब तक यह एक सशुल्क सेवा नहीं है और पूरी तरह से खुला स्रोत है"
@@ -108,18 +108,14 @@ responses:
   utter_nlu-faq-training-b3-hi/other-indian-languages:
   - text: "इंडिया डेटा पोर्टल छह भाषाओं में उपलब्ध है जिसमें अंग्रेजी और अन्य भारतीय भाषाएं जैसे हिंदी, बंगाली, मराठी, उड़िया और तेलुगु शामिल हैं"
 
-#   action_feedback-form:
-#   - text: "Feedback" 
-#     buttons:
-#         - title: "Feedback"
-#           payload: https://www.google.com
-  # - custom:
-  #     blocks:
-  #     - title: "[feedback](https://www.google.com)"
-  #     - type: web_url
-  #       url: 'https://www.google.com'
+  utter_nlu-faq-training-b3-hi/faced-issue-how-to-report:
+  - text: "आप फीडबैक फॉर्म भर सकते हैं या हमें लिख सकते हैं: idp@isb.edu"
 
+  utter_nlu-faq-training-b3-hi/diff-domains-on-portal:
+  - text: "इंडिया डेटा पोर्टल में कृषि, वित्तीय समावेशन, ग्रामीण विकास, अर्थव्यवस्था, सामाजिक-आर्थिक, जलवायु आदि जैसे कई डोमेन शामिल हैं।"
 
+  utter_nlu-faq-training-b3-hi/employment-data-on-portal:
+  - text: "रोजगार डेटा पोर्टल पर उपलब्ध है। हमारे पास एनएसएसओ रोजगार और मनरेगा रोजगार डेटा है"
 
 actions:
 - action_about_data_dataset_name
