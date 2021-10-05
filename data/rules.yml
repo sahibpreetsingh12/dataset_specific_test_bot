@@ -64,12 +64,12 @@ rules:
 
 - rule: Rule for lang detection for hindi1
   steps:
-    - intent: nlu-faq-training-b1-hi
+    - intent: nlu-faq-portal-b1-hi
     - action: action_language_detector
 
 - rule: Rule for lang detection for hindi2
   steps:
-    - intent: nlu-faq-training-b2-hi
+    - intent: nlu-faq-portal-b2-hi
     - action: action_language_detector
 
 - rule: Rule for lang detection for punjabi
@@ -79,5 +79,15 @@ rules:
 
 - rule: Rule for lang detection for hindi retrieval
   steps:
-    - intent: nlu-faq-training-b3-hi
+    - intent: nlu-faq-portal-b3-hi
+    - action: action_language_detector_retrieval
+
+- rule: Rule for Lang detection and answers for visualisation batch 1
+  steps:
+    - intent: nlu-faq-vis-b1-hi
+    - action: action_language_detector_retrieval
+
+- rule: Rule for Lang detection and answers for training batch 1
+  steps:
+    - intent: nlu-faq-training-b1-hi
     - action: action_language_detector_retrieval

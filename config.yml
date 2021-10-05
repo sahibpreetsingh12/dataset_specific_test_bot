@@ -21,7 +21,15 @@ pipeline:
 
   - name: ResponseSelector
     epochs: 50
-    retrieval_intent: nlu-faq-training-b3-hi
+    retrieval_intent: nlu-faq-portal-b3-hi
+
+  - name: ResponseSelector
+    epochs: 50
+    retrieval_intent: nlu-faq-vis-b1-hi
+
+  - name: ResponseSelector
+    epochs: 50
+    retrieval_intent: nlu-faq-training-b1-hi    
 
 # Configuration for Rasa Core.
 # https://rasa.com/docs/rasa/core/policies/
